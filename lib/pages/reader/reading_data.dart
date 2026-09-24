@@ -274,7 +274,7 @@ class HtReadingData extends ReadingData {
   @override
   final String id;
 
-  HtReadingData(this.title, this.id,);
+  HtReadingData(this.title, this.id);
 
   @override
   Map<String, String>? get eps => null;
@@ -297,8 +297,20 @@ class HtReadingData extends ReadingData {
   }
 
   @override
-  Stream<DownloadProgress> loadImageNetwork(int ep, int page, String url) {
-    return ImageManager().getImage(url);
+  Stream<DownloadProgress> loadImageNetwork(int ep, int page, String url) async* {
+    // 1. 获取主站保存的鉴权 Cookie
+    var cookies = await HtmangaNetwork().getCookies();
+
+    // 2. 构造与浏览器连页模式完全一致的请求头
+    var headers = <String, String>{
+      "User-Agent": webUA,
+      "Referer": "${HtmangaNetwork.baseUrl}/photos-slide-aid-$id.html",
+      "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+      if (cookies.isNotEmpty) "Cookie": cookies,
+    };
+
+    // 3. 传入带精准 Referer 和 Cookie 的 headers
+    yield* ImageManager().getImage(url, headers);
   }
 
   @override
