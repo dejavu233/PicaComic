@@ -58,7 +58,19 @@ class HtmangaNetwork {
       return Res(null, errorMessage: e.toString());
     }
   }
-
+/// 获取当前主站保存的 Cookie 字符串
+  Future<String> getCookies() async {
+    try {
+      var uri = Uri.parse(baseUrl);
+      var cookies = await SingleInstanceCookieJar.instance?.loadForRequest(uri) ?? [];
+      if (cookies.isEmpty) {
+        return "";
+      }
+      return cookies.map((c) => "${c.name}=${c.value}").join("; ");
+    } catch (e) {
+      return "";
+    }
+  }
   ///基本的Post请求
   Future<Res<String>> post(String url, String data) async {
     var dio = logDio(BaseOptions(headers: {
